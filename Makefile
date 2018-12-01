@@ -17,7 +17,7 @@ TMP_FILE = $(PROJ).tmp
 MAIN_ASM = joytester.asm
 MAIN_OBJ = joytester.obj
 #MAIN48K_OBJ = main48k.obj
-ASM_FILES = $(MAIN_ASM)
+ASM_FILES = $(MAIN_ASM) zxspectrum_data.asm
 LABELS_OUT = $(PROJ).labels
 # The assembler output listing file:
 LIST_OUT = $(PROJ).list
