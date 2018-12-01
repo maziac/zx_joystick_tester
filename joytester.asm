@@ -43,6 +43,10 @@ PORT_KEMPSTON_JOY0: equ 0x1f
 PORT_KEMPSTON_JOY1: equ 0x37
 
 
+; ZXNext peripheral.
+REG_PERIPHERAL_1:	equ	5
+
+
 ; String formatting.
 EOS:    equ 0xff    ; End of string:
 AT:     equ 0x16    ; ZX Spectrum ASCII Control code: AT, y, x
@@ -60,6 +64,9 @@ COLOR_ATTR_IF2_JOY1:    equ COLOR_ATTR_IF2_JOY0+9
 COLOR_ATTR_KEMPSTON_JOY0:   equ COLOR_ATTR_IF2_JOY0+COLOR_SCREEN_WIDTH
 COLOR_ATTR_KEMPSTON_JOY1:   equ COLOR_ATTR_KEMPSTON_JOY0+9
 
+COLOR_ATTR_ZXNEXT_JOY0: equ COLOR_ATTR_KEMPSTON_JOY0+COLOR_SCREEN_WIDTH
+COLOR_ATTR_ZXNEXT_JOY1: equ COLOR_ATTR_ZXNEXT_JOY0+9
+
 
 ;===========================================================================
 ; Macros.
@@ -71,6 +78,15 @@ MEMGUARD:	macro
     endm
 
 
+; Directly sets a Next Feature Control Register with the given value.
+; Parameters:
+;	register = The Next Feature Control Register to set.
+;	value = The value for the register.
+NEXTREG:	macro	register value
+	defb 0xED, 0x91
+	defb register
+	defb value
+	endm
 
 
 ;===========================================================================
@@ -144,6 +160,22 @@ main_loop:
     ld hl,COLOR_ATTR_KEMPSTON_JOY1
     call visualize_joystick
 
+    ; ZXNext joystick.
+    ; Uses the same ports as IF2 or Kempston, but allows for more buttons.
+    NEXTREG REG_PERIPHERAL_1 01101010b  ; Use 3 button mode
+
+    ; Get joystick value. Interface II, joystick 0
+    ld bc,PORT_IF2_JOY_0
+    ld hl,COLOR_ATTR_ZXNEXT_JOY0
+    call visualize_joystick
+
+    ; Get joystick value. Interface II, joystick 1
+    ld bc,PORT_IF2_JOY_1
+    ld hl,COLOR_ATTR_ZXNEXT_JOY1
+    call visualize_joystick
+
+    NEXTREG REG_PERIPHERAL_1 11000000b  ; Switch back to normal mode
+
     jr main_loop
 
 
@@ -209,7 +241,7 @@ LBL_COMPLETE_TEXT:
     defb AT, 8, 0
     defb 'Kempston:      ???F^v<> ???F^v<>'
 
-    defb AT, 8, 0
+    defb AT, 9, 0
     defb 'ZXNext:        SACB^v<> SACB^v<>'
 
     defb EOS
