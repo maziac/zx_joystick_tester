@@ -12,6 +12,43 @@
 ;
 ;===========================================================================
 
+;===========================================================================
+; Constants.
+;===========================================================================
+
+
+; Color codes
+BLACK:          equ 0
+BLUE:           equ 1
+RED:            equ 2
+MAGENTA:        equ 3
+GREEN:          equ 4
+CYAN:           equ 5
+YELLOW:         equ 6
+WHITE:          equ 7
+BRIGHT:     equ 01000000b ; (Bit 6)
+
+; Color for joystick bit (button or direction) that is not set.
+COLOR_BIT_NOT_SET:  equ (WHITE<<3)+BRIGHT
+
+; Color for joystick bit (button or direction) that is set.
+COLOR_BIT_SET:      equ (RED<<3)+BRIGHT
+
+; Interface II Joystrick ports.
+PORT_IF2_JOY_0: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0
+PORT_IF2_JOY_1: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1
+
+
+; Color attribute screen.
+SCREEN_COLOR_ATTR:  equ 0x5800
+
+; Color screen width.
+COLOR_SCREEN_WDITH: equ 32
+
+; Start addresses for visualization.
+COLOR_ATTR_IF2_JOY0:    equ SCREEN_COLOR_ATTR
+COLOR_ATTR_IF2_JOY1:    equ SCREEN_COLOR_ATTR+2*COLOR_SCREEN_WDITH
+
 
 ;===========================================================================
 ; Macros.
@@ -52,11 +89,60 @@ LBL_MAIN:
 ;    ld hl,user_defined_graphics
 ;    ld (VAR_UDG),hl  
 
+
+; The main loop:
+; - Check joystick input
+; - Visualize it
 main_loop:
 
 
+    ; Visualize.
+    ;ld hl,AT_JOY0
+    ;call print
+
+    ; Get joystick value. Interface II, joystick 0
+    ld bc,PORT_IF2_JOY_0
+    in a,(c)
+
+    ; Visualize 
+    ld hl,COLOR_ATTR_IF2_JOY0
+    call visualize_joystick
+
+    ; Get joystick value. Interface II, joystick 0
+    ld bc,PORT_IF2_JOY_1
+    in a,(c)
+
+    ; Visualize 
+    ld hl,COLOR_ATTR_IF2_JOY1
+    call visualize_joystick
+
     jr main_loop
 
+
+; Visualizes the Joystick Input.
+; IN: A = The joystick input.
+;   Bit:    0 = Right
+;           1 = Left
+;           2 = Down
+;           3 = Up
+;           4 = B
+;           5 = C
+;           6 = A
+;           7 = Start
+;     HL = Pointer to start address in color attributes screen.
+visualize_joystick:
+    ld b,8  ; 8 bits
+visualize_joystick_loop:
+    rrca    ; Rotate right most bit into carry
+    ld c,COLOR_BIT_NOT_SET
+    jr nc,visualize_joystick_l1
+    ld c,COLOR_BIT_SET
+visualize_joystick_l1:
+    ; Set color on screen
+    ld (hl),c
+    inc hl
+    djnz visualize_joystick_loop
+    ret
 
 
 ;===========================================================================
