@@ -34,10 +34,13 @@ COLOR_BIT_NOT_SET:  equ (WHITE<<3)+BRIGHT
 ; Color for joystick bit (button or direction) that is set.
 COLOR_BIT_SET:      equ (RED<<3)+BRIGHT
 
-; Interface II Joystrick ports.
+; Interface II joystick ports.
 PORT_IF2_JOY_0: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0
 PORT_IF2_JOY_1: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1
 
+; Kempston joystick ports.
+PORT_KEMPSTON_JOY0: equ 0x1f 
+PORT_KEMPSTON_JOY1: equ 0x37
 
 
 ; String formatting.
@@ -48,11 +51,14 @@ AT:     equ 0x16    ; ZX Spectrum ASCII Control code: AT, y, x
 SCREEN_COLOR_ATTR:  equ 0x5800
 
 ; Color screen width.
-COLOR_SCREEN_WDITH: equ 32
+COLOR_SCREEN_WIDTH: equ 32
 
 ; Start addresses for visualization.
-COLOR_ATTR_IF2_JOY0:    equ SCREEN_COLOR_ATTR+4*COLOR_SCREEN_WDITH+7
-COLOR_ATTR_IF2_JOY1:    equ SCREEN_COLOR_ATTR+4*COLOR_SCREEN_WDITH+7+16
+COLOR_ATTR_IF2_JOY0:    equ SCREEN_COLOR_ATTR+7*COLOR_SCREEN_WIDTH+15
+COLOR_ATTR_IF2_JOY1:    equ COLOR_ATTR_IF2_JOY0+9
+
+COLOR_ATTR_KEMPSTON_JOY0:   equ COLOR_ATTR_IF2_JOY0+COLOR_SCREEN_WIDTH
+COLOR_ATTR_KEMPSTON_JOY1:   equ COLOR_ATTR_KEMPSTON_JOY0+9
 
 
 ;===========================================================================
@@ -120,35 +126,32 @@ main_loop:
 
     ; Get joystick value. Interface II, joystick 0
     ld bc,PORT_IF2_JOY_0
-    in a,(c)
-
-    ; Visualize 
     ld hl,COLOR_ATTR_IF2_JOY0
     call visualize_joystick
 
-    ; Get joystick value. Interface II, joystick 0
+    ; Get joystick value. Interface II, joystick 1
     ld bc,PORT_IF2_JOY_1
-    in a,(c)
-
-    ; Visualize 
     ld hl,COLOR_ATTR_IF2_JOY1
+    call visualize_joystick
+
+    ; Get joystick value. Kempston, joystick 0.
+    ld bc,PORT_KEMPSTON_JOY0
+    ld hl,COLOR_ATTR_KEMPSTON_JOY0
+    call visualize_joystick
+
+    ; Get joystick value. Kempston, joystick 1.
+    ld bc,PORT_KEMPSTON_JOY1
+    ld hl,COLOR_ATTR_KEMPSTON_JOY1
     call visualize_joystick
 
     jr main_loop
 
 
 ; Visualizes the Joystick Input.
-; IN: A = The joystick input.
-;   Bit:    0 = Right
-;           1 = Left
-;           2 = Down
-;           3 = Up
-;           4 = B
-;           5 = C
-;           6 = A
-;           7 = Start
+; IN: BC = Port to read (Joystick input)
 ;     HL = Pointer to start address in color attributes screen.
 visualize_joystick:
+    in a,(c)
     ld b,8  ; 8 bits
 visualize_joystick_loop:
     rlca    ; Rotate left most bit into carry
@@ -161,48 +164,6 @@ visualize_joystick_l1:
     inc hl
     djnz visualize_joystick_loop
     ret
-
-
-if 0
-; Visualizes the Interface 2 Joystick 0 Input.
-; IN: A = The joystick input.
-;   Bit:    0 = Fire
-;           1 = Up
-;           2 = Down
-;           3 = Right
-;           4 = Left
-;           5 = ?
-;           6 = ?
-;           7 = ?
-;     HL = Pointer to start address in color attributes screen.
-visualize_if2_joy0:
-    ; sort input to align with main visualization function.
-    ld c,a  ; Leave bit 5-7
-    or 00011111b
-    bit 0,c
-    jr nz,visualize_if2_joy0_l1
-    res 4,a
-visualize_if2_joy0_l1:
-    bit 1,c
-    jr nz,visualize_if2_joy0_l2
-    res 3,a
-visualize_if2_joy0_l2:
-    bit 2,c
-    jr nz,visualize_if2_joy0_l3
-    res 2,a
-visualize_if2_joy0_l3:
-    bit 3,c
-    jr nz,visualize_if2_joy0_l4
-    res 0,a
-visualize_if2_joy0_l4:
-    bit 4,c
-    jr nz,visualize_if2_joy0_l5
-    res 1,a
-visualize_if2_joy0_l5:
-    jr visualize_joystick
-endif
-
-
 
 
 ; Prints a text until an EOS (end of string) is found.
@@ -234,11 +195,22 @@ print:
 LBL_COMPLETE_TEXT:
     defb AT, 0, 0
     defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.0.'
-    
     defb AT, 3, 0
-    defb 'Interface II:'
-    defb AT, 4, 0
-    defb ' Joy0: ???<>v^F  Joy1: ???F^v><'
+    defb 'White=1, Red=0.'
+    
+    defb AT, 5, 15
+    defb 'Joy0:    Joy1:'
+    defb AT, 6, 15
+    defb '76543210 76543210'
+
+    defb AT, 7, 0
+    defb 'Interface II:  ???<>v^F ???F^v><'
+
+    defb AT, 8, 0
+    defb 'Kempston:      ???F^v<> ???F^v<>'
+
+    defb AT, 8, 0
+    defb 'ZXNext:        SACB^v<> SACB^v<>'
 
     defb EOS
     
