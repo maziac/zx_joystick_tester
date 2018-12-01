@@ -1,0 +1,40 @@
+{
+    // Verwendet IntelliSense zum Ermitteln möglicher Attribute.
+    // Zeigen Sie auf vorhandene Attribute, um die zugehörigen Beschreibungen anzuzeigen.
+    // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "z80-debug",
+            "request": "launch",
+            "name": "Z80 Debugger",
+            "zhostname": "localhost",
+            "zport": 10000,
+            "topOfStack": "stack_top",
+            "resetOnLaunch": false,
+            "skipInterrupt": true,
+            "startAutomatically": false,
+            "commandsAfterLaunch": [
+                //"-wpmem disable",
+                //"-assert disable",
+                //"-sprites",
+                //"-patterns"
+            ],
+            "disassemblerArgs": {
+                "esxdosRst": true
+            },
+            "listFiles": [
+                {
+                    "path": "joytester.list",
+                    "useFiles": true
+                }
+
+            ],
+            "labelsFiles": [
+                "joytester.labels",
+            ],
+            
+            "loadSnap": "joytester.sna"
+        }
+    ]
+}
