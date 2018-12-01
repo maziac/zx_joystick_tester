@@ -42,6 +42,8 @@ PORT_IF2_JOY_1: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1
 PORT_KEMPSTON_JOY0: equ 0x1f 
 PORT_KEMPSTON_JOY1: equ 0x37
 
+; Fuller joystick port.
+PORT_FULLER:    equ 0x7f 
 
 ; ZXNext peripheral.
 REG_PERIPHERAL_1:	equ	5
@@ -64,7 +66,9 @@ COLOR_ATTR_IF2_JOY1:    equ COLOR_ATTR_IF2_JOY0+9
 COLOR_ATTR_KEMPSTON_JOY0:   equ COLOR_ATTR_IF2_JOY0+COLOR_SCREEN_WIDTH
 COLOR_ATTR_KEMPSTON_JOY1:   equ COLOR_ATTR_KEMPSTON_JOY0+9
 
-COLOR_ATTR_ZXNEXT_JOY0: equ COLOR_ATTR_KEMPSTON_JOY0+COLOR_SCREEN_WIDTH
+COLOR_ATTR_FULLER:  equ COLOR_ATTR_KEMPSTON_JOY0+COLOR_SCREEN_WIDTH
+
+COLOR_ATTR_ZXNEXT_JOY0: equ COLOR_ATTR_FULLER+COLOR_SCREEN_WIDTH
 COLOR_ATTR_ZXNEXT_JOY1: equ COLOR_ATTR_ZXNEXT_JOY0+9
 
 
@@ -160,6 +164,12 @@ main_loop:
     ld hl,COLOR_ATTR_KEMPSTON_JOY1
     call visualize_joystick
 
+    ; Get joystick value. Fuller.
+    ld bc,PORT_FULLER
+    ld hl,COLOR_ATTR_FULLER
+    call visualize_joystick
+
+
     ; ZXNext joystick.
     ; Uses the same ports as IF2 or Kempston, but allows for more buttons.
     NEXTREG REG_PERIPHERAL_1 01101010b  ; Use 3 button mode
@@ -242,6 +252,9 @@ LBL_COMPLETE_TEXT:
     defb 'Kempston:      ???F^v<> ???F^v<>'
 
     defb AT, 9, 0
+    defb 'Fuller:        F???><v^'
+
+    defb AT, 10, 0
     defb 'ZXNext:        SACB^v<> SACB^v<>'
 
     defb EOS
