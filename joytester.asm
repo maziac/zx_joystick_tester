@@ -138,8 +138,9 @@ LBL_MAIN:
 ; - Check joystick input
 ; - Visualize it
 main_loop:
-
-
+    ; Make the loop slower.
+    halt
+    
     ; Visualize.
     ;ld hl,AT_JOY0
     ;call print

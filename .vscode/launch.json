@@ -11,7 +11,7 @@
             "zhostname": "localhost",
             "zport": 10000,
             "topOfStack": "stack_top",
-            "resetOnLaunch": false,
+            "resetOnLaunch": true,
             "skipInterrupt": true,
             "startAutomatically": true,
             "commandsAfterLaunch": [
