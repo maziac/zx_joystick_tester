@@ -18,7 +18,7 @@
             },
             "promptOnClose": false,
             // arg passing example: make all
-            "args": ["-Wall"],
+            "args": [],
             // Use the standard less compilation problem matcher.
             "problemMatcher": {
                 "fileLocation": ["relative", "${workspaceRoot}"],

@@ -5,6 +5,7 @@
 PROJ = joytester
 ASM = "/Volumes/Macintosh HD 2/Projects/zesarux/z80asm/z80asm"	# Path to the Z80 Assembler, http://savannah.nongnu.org/projects/z80asm/
 #CC = "/Volumes/Macintosh HD 2/Projects/zesarux/sdcc/bin/sdcc"	# Path to compiler, http://sdcc.sourceforge.net
+CODE2TAP="/Volumes/Macintosh HD 2/Projects/zesarux/zx-code2tap/bin/zxcode2tap"	# Path to the tap-converter, https://github.com/maziac/zx-code2tap
 #SED = gsed
 SNA_FILE = $(PROJ).sna
 SNA_HDR = $(PROJ).snahdr
@@ -12,6 +13,7 @@ SNA_SYMS = $(PROJ).symbols
 SNA_BLOCK = $(PROJ).blocks
 SNA_OBJ = $(PROJ).re.obj
 SNA_ASM = $(PROJ).re.asm
+TAP_PRG_NAME = joytester
 TAP_FILE = $(PROJ).tap
 TMP_FILE = $(PROJ).tmp
 MAIN_ASM = joytester.asm
@@ -24,8 +26,8 @@ LIST_OUT = $(PROJ).list
 
 
 #default:	sna tap
-default:	sna
-
+#default:	sna
+default:	tap
 
 clean:
 	-rm -f $(EXT_OBJ) $(EXT_SNA) $(SNA_HDR)
@@ -46,5 +48,5 @@ tap:	$(MAIN_OBJ)
 	# 25000-16384 (start of main.obj) = 8616.
 	# 65015 (0xFDF7) is the start of the assembler program.
 	dd skip=8616 if=$< of=$(TMP_FILE) bs=1
-	code2tap swarrior -code $(TMP_FILE) -start 25000 -exec 65015
+	$(CODE2TAP) $(TAP_PRG_NAME) -code $(TMP_FILE) -start 25000 -exec 65015
 

@@ -5,3 +5,4 @@
 *.sna
 *.snahdr
 .tmp/
+*.tap
