@@ -15,7 +15,6 @@ SNA_OBJ = $(PROJ).re.obj
 SNA_ASM = $(PROJ).re.asm
 TAP_PRG_NAME = joytester
 TAP_FILE = $(PROJ).tap
-TMP_FILE = $(PROJ).tmp
 MAIN_ASM = joytester.asm
 MAIN_OBJ = joytester.obj
 #MAIN48K_OBJ = main48k.obj
@@ -43,10 +42,7 @@ sna:	$(MAIN_OBJ) $(SNA_HDR)
 	cat $(SNA_HDR) $(MAIN_OBJ) > $(SNA_FILE)
 
 tap:	$(MAIN_OBJ)
-	# 24999 is the top of the ZX Basic program.
-	# The code is loaded at 25000.
-	# 25000-16384 (start of main.obj) = 8616.
-	# 65015 (0xFDF7) is the start of the assembler program.
-	dd skip=8616 if=$< of=$(TMP_FILE) bs=1
-	$(CODE2TAP) $(TAP_PRG_NAME) -code $(TMP_FILE) -start 25000 -exec 65015
+	# 24999 (0x61A7) is the top of the ZX Basic program.
+	# The code is loaded and executed at 0x6000.
+	$(CODE2TAP) $(TAP_PRG_NAME) -code $(MAIN_OBJ) -start 0x7000 -exec 0x7000
 

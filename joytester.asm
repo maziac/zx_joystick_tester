@@ -93,23 +93,12 @@ NEXTREG:	macro	register value
 	endm
 
 
-;===========================================================================
-; System variables.
-;===========================================================================
-
-    ; 0x0000 to 0x3FFF is ROM
-	org	4000h
-
-include "zxspectrum_data.asm"
-
-
 
 ;===========================================================================
 ; Start of main program.
 ;===========================================================================
 
-    ; Start at 0x6000
-    defs    0x6000 - $, 0
+    org 0x7000
 
 LBL_MAIN:
     di
@@ -264,9 +253,6 @@ LBL_COMPLETE_TEXT:
 
 ;===========================================================================
 ; STACK
-; Fill up to 0xF000
-defs 0xF000 - $
-
 ; Stack: this area is reserved for the stack
 STACK_SIZE: equ 100d    ; in words
 
@@ -278,14 +264,3 @@ stack_bottom:
 stack_top:
 ;===========================================================================
 
-
-;===========================================================================
-; Here is the start from the SNA header.
-   defs    0xFDFA - $, 0
-LBL_SNA_START_ADDR: ; should be 0xFDFA
-   defw    LBL_MAIN ; The .sna format expects the starting address on the stack.
-;===========================================================================
-
-
-; Fill up to 65535
-defs 0x10000 - $

@@ -11,7 +11,7 @@
             "zhostname": "localhost",
             "zport": 10000,
             "topOfStack": "stack_top",
-            "resetOnLaunch": true,
+            "resetOnLaunch": false,
             "skipInterrupt": true,
             "startAutomatically": true,
             "commandsAfterLaunch": [
@@ -34,7 +34,7 @@
                 "joytester.labels",
             ],
             
-            "loadSnap": "joytester.sna"
+            "load": "joytester.tap"
         }
     ]
 }
