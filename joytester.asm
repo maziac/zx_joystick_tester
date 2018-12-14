@@ -254,16 +254,16 @@ LBL_COMPLETE_TEXT:
     defb '76543210 76543210'
 
     defb AT, 7, 0
-    defb 'Interface II:  ???<>v^F ???F^v><'
+    defb 'Interface II:  ???LRDUF ???FUDRL'
 
     defb AT, 8, 0
-    defb 'Kempston:      ???F^v<> ???F^v<>'
+    defb 'Kempston:      ???FUDLR ???FUDLR'
 
     defb AT, 9, 0
-    defb 'Fuller:        F???><v^'
+    defb 'Fuller:        F???RLDU'
 
     defb AT, 10, 0
-    defb 'ZXNext:        SACB^v<> SACB^v<>'
+    defb 'ZXNext:        SACBUDLR SACBUDLR'
 
     defb EOS
     
