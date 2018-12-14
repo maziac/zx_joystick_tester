@@ -93,6 +93,13 @@ NEXTREG:	macro	register value
 	endm
 
 
+; Multiplies D by E and stores the result in DE.
+; Does not alter any flags.
+; Input:	DE
+; Output:	DE = D*E
+MUL_D_E:	macro
+	defb 0xED, 0x30
+	endm
 
 ;===========================================================================
 ; Start of main program.
@@ -102,6 +109,7 @@ NEXTREG:	macro	register value
 
 LBL_MAIN:
     di
+
 
     ; Setup stack
     ld sp,stack_top
@@ -158,6 +166,16 @@ main_loop:
     ld bc,PORT_FULLER
     ld hl,COLOR_ATTR_FULLER
     call visualize_joystick
+
+
+
+    ; Check for ZX Next, i.e. check if extended opcodes are available.
+    ld e,2
+    ld d,e
+    MUL_D_E
+    ld a,e
+    cp 4
+    jr nz,main_loop
 
 
     ; ZXNext joystick.
@@ -228,7 +246,7 @@ LBL_COMPLETE_TEXT:
     defb AT, 0, 0
     defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.0.'
     defb AT, 3, 0
-    defb 'White=1, Red=0.'
+    defb 'White=1, Red=0, Black=Not Avail.'
     
     defb AT, 5, 15
     defb 'Joy0:    Joy1:'
