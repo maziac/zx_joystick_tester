@@ -7,13 +7,13 @@
         {
             "type": "z80-debug",
             "request": "launch",
-            "name": "Z80 Debugger",
+            "name": "joytester",
             "zhostname": "localhost",
             "zport": 10000,
             "topOfStack": "stack_top",
             "resetOnLaunch": true,
             "skipInterrupt": true,
-            "startAutomatically": true,
+            "startAutomatically": false,
             "commandsAfterLaunch": [
                 //"-wpmem disable",
                 //"-assert disable",
@@ -25,17 +25,59 @@
             },
             "listFiles": [
                 {
+                    "asm": "z80asm",
                     "path": "joytester.list",
                     "useFiles": true
                 }
 
-            ],
-            "labelsFiles": [
-                "joytester.labels",
-            ],
-            
+            ],        
             "load": "joytester.tap",
+            /*
+            "execAddress": "LBL_MAIN",
+            "loadObjs": [
+                {
+                    "path": "joytester.obj",
+                    "start": "0x7000"
+                }
+            ],
+            */
+            "socketTimeout": 50,    // 50 secs for debugging
+        },
 
+        {
+            "type": "z80-debug",
+            "request": "launch",
+            "unitTests": true,
+            "name": "Unit Tests",
+            "zhostname": "localhost",
+            "zport": 10000,
+            "topOfStack": "stack_top",
+            "resetOnLaunch": true,
+            "skipInterrupt": true,
+            "execAddress": "LBL_MAIN",
+            "commandsAfterLaunch": [
+                //"-wpmem disable",
+                //"-assert disable",
+                //"-sprites",
+                //"-patterns"
+            ],
+            "disassemblerArgs": {
+                "esxdosRst": true
+            },
+            "listFiles": [
+                {
+                    "asm": "z80asm",
+                    "path": "joytester.list",
+                    "useFiles": true
+                }
+            ],
+            "loadObjs": [
+                 {
+                    "path": "joytester.obj",
+                    "start": "0x7000"
+                }
+            ],
+            "socketTimeout": 50,    // 50 secs for debugging
         }
     ]
 }

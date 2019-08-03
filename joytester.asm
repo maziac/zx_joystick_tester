@@ -110,7 +110,6 @@ MUL_D_E:	macro
 LBL_MAIN:
     di
 
-
     ; Setup stack
     ld sp,stack_top
 
@@ -126,6 +125,9 @@ LBL_MAIN:
     ; Set pointer to user defined graphics
 ;    ld hl,user_defined_graphics
 ;    ld (VAR_UDG),hl  
+
+    ; Clear screen
+    ;call 0D6Bh
 
     ; Print text.
     ld hl,LBL_COMPLETE_TEXT
@@ -145,27 +147,27 @@ main_loop:
     ; Get joystick value. Interface II, joystick 0
     ld bc,PORT_IF2_JOY_0
     ld hl,COLOR_ATTR_IF2_JOY0
-    call visualize_joystick
+    call visualize_joystick_inport
 
     ; Get joystick value. Interface II, joystick 1
     ld bc,PORT_IF2_JOY_1
     ld hl,COLOR_ATTR_IF2_JOY1
-    call visualize_joystick
+    call visualize_joystick_inport
 
     ; Get joystick value. Kempston, joystick 0.
     ld bc,PORT_KEMPSTON_JOY0
     ld hl,COLOR_ATTR_KEMPSTON_JOY0
-    call visualize_joystick
+    call visualize_joystick_inport
 
     ; Get joystick value. Kempston, joystick 1.
     ld bc,PORT_KEMPSTON_JOY1
     ld hl,COLOR_ATTR_KEMPSTON_JOY1
-    call visualize_joystick
+    call visualize_joystick_inport
 
     ; Get joystick value. Fuller.
     ld bc,PORT_FULLER
     ld hl,COLOR_ATTR_FULLER
-    call visualize_joystick
+    call visualize_joystick_inport
 
 
 
@@ -185,12 +187,12 @@ main_loop:
     ; Get joystick value. Interface II, joystick 0
     ld bc,PORT_IF2_JOY_0
     ld hl,COLOR_ATTR_ZXNEXT_JOY0
-    call visualize_joystick
+    call visualize_joystick_inport
 
     ; Get joystick value. Interface II, joystick 1
     ld bc,PORT_IF2_JOY_1
     ld hl,COLOR_ATTR_ZXNEXT_JOY1
-    call visualize_joystick
+    call visualize_joystick_inport
 
     NEXTREG REG_PERIPHERAL_1 11000000b  ; Switch back to normal mode
 
@@ -200,8 +202,9 @@ main_loop:
 ; Visualizes the Joystick Input.
 ; IN: BC = Port to read (Joystick input)
 ;     HL = Pointer to start address in color attributes screen.
-visualize_joystick:
+visualize_joystick_inport:
     in a,(c)
+visualize_joystick_a:   ; For unit tests
     ld b,8  ; 8 bits
 visualize_joystick_loop:
     rlca    ; Rotate left most bit into carry
@@ -282,3 +285,53 @@ stack_bottom:
 stack_top:
 ;===========================================================================
 
+
+ ;===========================================================================
+; UNIT TESTS
+;===========================================================================
+
+
+include "unit_tests.inc"
+
+
+if 01
+
+UT_visualize_joystick_1:
+    ld hl,COLOR_ATTR_ZXNEXT_JOY0
+    ld a,10101010b
+    call visualize_joystick_a
+    
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+1 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+2 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+3 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+4 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+5 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+6 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+7 COLOR_BIT_SET
+
+	ret
+
+UT_visualize_joystick_2:
+    ld hl,COLOR_ATTR_ZXNEXT_JOY0
+    ld a,01010101b
+    call visualize_joystick_a
+    
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+1 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+2 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+3 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+4 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+5 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+6 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+7 COLOR_BIT_NOT_SET
+
+	ret
+
+
+UNITTEST_INITIALIZE
+    ; Start of unit test initialization.
+    ret
+
+endif 
+    

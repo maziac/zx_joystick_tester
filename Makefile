@@ -3,9 +3,9 @@
 
 
 PROJ = joytester
-ASM = "/Volumes/Macintosh HD 2/Projects/zesarux/z80asm/z80asm"	# Path to the Z80 Assembler, http://savannah.nongnu.org/projects/z80asm/
-#CC = "/Volumes/Macintosh HD 2/Projects/zesarux/sdcc/bin/sdcc"	# Path to compiler, http://sdcc.sourceforge.net
-CODE2TAP="/Volumes/Macintosh HD 2/Projects/zesarux/zx-code2tap/bin/zxcode2tap"	# Path to the tap-converter, https://github.com/maziac/zx-code2tap
+ASM = "/Volumes/SDDPCIE2TB/Projects/zxspectrum/z80asm/z80asm"	# Path to the Z80 Assembler, http://savannah.nongnu.org/projects/z80asm/
+#CC = ".../bin/sdcc"	# Path to compiler, http://sdcc.sourceforge.net
+CODE2TAP="/Volumes/SDDPCIE2TB/Projects/zxspectrum/zx-tools/zx-code2tap/bin/zxcode2tap"	# Path to the tap-converter, https://github.com/maziac/zx-code2tap
 #SED = gsed
 SNA_FILE = $(PROJ).sna
 SNA_HDR = $(PROJ).snahdr
@@ -18,7 +18,7 @@ TAP_FILE = $(PROJ).tap
 MAIN_ASM = joytester.asm
 MAIN_OBJ = joytester.obj
 #MAIN48K_OBJ = main48k.obj
-ASM_FILES = $(MAIN_ASM) zxspectrum_data.asm
+ASM_FILES = $(MAIN_ASM) zxspectrum_data.asm unit_tests.inc
 LABELS_OUT = $(PROJ).labels
 # The assembler output listing file:
 LIST_OUT = $(PROJ).list
@@ -43,6 +43,6 @@ sna:	$(MAIN_OBJ) $(SNA_HDR)
 
 tap:	$(MAIN_OBJ)
 	# 24999 (0x61A7) is the top of the ZX Basic program.
-	# The code is loaded and executed at 0x6000.
+	# The code is loaded and executed at 0x7000.
 	$(CODE2TAP) $(TAP_PRG_NAME) -code $(MAIN_OBJ) -start 0x7000 -exec 0x7000
 
