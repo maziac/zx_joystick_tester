@@ -13,7 +13,7 @@
             "topOfStack": "stack_top",
             "resetOnLaunch": true,
             "skipInterrupt": true,
-            "startAutomatically": false,
+            "startAutomatically": true,
             "commandsAfterLaunch": [
                 //"-wpmem disable",
                 //"-assert disable",
