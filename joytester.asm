@@ -239,7 +239,28 @@ j1_no_overflw:
     NEXTRA REG_PERIPHERAL_1
 
 key1_not_pressed:
+    ; Evaluate key
+    bit 1,e ; "S"
+    jr nz,no_key_pressed
 
+    ; "S" was pressed
+    ld l,a
+    and 10111111b
+    add 00010000b
+    ld h,a
+    ; Restore
+    res 6,a
+    bit 6,l
+    jr z,restore_0
+    set 6,a
+restore_0:
+    bit 6,h
+    jr z,j2_no_overflw
+    ; Handle overflow
+    xor 00000010b
+j2_no_overflw:
+    ; Set new value
+    NEXTRA REG_PERIPHERAL_1
 
 no_key_pressed:
     ; Read configuration of ZX Next joystick
@@ -252,7 +273,7 @@ no_key_pressed:
     ; Check if value changed
     ld hl,prev_zxn_joy_config
     cp (hl)
-    jr z,main_loop
+    jp z,main_loop
 
     ; Changed, store
     ld (hl),a
@@ -386,6 +407,8 @@ no_md1:
     jr zxn_joy_print
 
 no_md2:
+    ld hl,UNDEFINED_TEXT
+    call print
     ret  ; Print nothing
 
 zxn_joy_print:
@@ -456,7 +479,7 @@ ZXNEXT_TEXT:
     defb AT, 12, 0
     defb 'ZXNEXT Joystick Modes:'
     defb AT, 16, 0
-    defb 'Press key to change mode:'
+    defb 'Press a key to change mode:'
     defb AT, 17, 0
     defb 'A=Change Joystick 1 mode'
     defb AT, 18, 0
@@ -490,6 +513,8 @@ MD_TEXT:
 JOY1_TEXT:  defb 'JOY1', EOS
 JOY2_TEXT:  defb 'JOY2', EOS
 JOYSTICK_TEXT:  defb 'Joystick', EOS
+
+UNDEFINED_TEXT: defb 'Undefined', EOS
 
 
 ;===========================================================================
