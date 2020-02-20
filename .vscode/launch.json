@@ -5,9 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "z80-debug",
+            "type": "dezog",
             "request": "launch",
             "name": "joytester",
+            "remoteType": "zrcp",
             "zhostname": "localhost",
             "zport": 10000,
             "topOfStack": "stack_top",
@@ -45,9 +46,10 @@
         },
 
         {
-            "type": "z80-debug",
+            "type": "dezog",
             "request": "launch",
             "unitTests": true,
+            "remoteType": "zrcp",
             "name": "Unit Tests",
             "zhostname": "localhost",
             "zport": 10000,

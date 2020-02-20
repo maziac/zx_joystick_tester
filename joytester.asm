@@ -35,15 +35,19 @@ COLOR_BIT_NOT_SET:  equ (WHITE<<3)+BRIGHT
 COLOR_BIT_SET:      equ (RED<<3)+BRIGHT
 
 ; Interface II joystick ports.
-PORT_IF2_JOY_0: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0
 PORT_IF2_JOY_1: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1
+PORT_IF2_JOY_2: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0
 
 ; Kempston joystick ports.
-PORT_KEMPSTON_JOY0: equ 0x1f 
-PORT_KEMPSTON_JOY1: equ 0x37
+PORT_KEMPSTON_JOY1: equ 0x1f 
+PORT_KEMPSTON_JOY2: equ 0x37
 
 ; Fuller joystick port.
 PORT_FULLER:    equ 0x7f 
+
+; Keyboard port
+KEYB_ASDFG:     equ 0xFDFE
+
 
 ; ZXNext peripheral.
 REG_PERIPHERAL_1:	equ	5
@@ -60,16 +64,21 @@ SCREEN_COLOR_ATTR:  equ 0x5800
 COLOR_SCREEN_WIDTH: equ 32
 
 ; Start addresses for visualization.
-COLOR_ATTR_IF2_JOY0:    equ SCREEN_COLOR_ATTR+7*COLOR_SCREEN_WIDTH+15
-COLOR_ATTR_IF2_JOY1:    equ COLOR_ATTR_IF2_JOY0+9
+COLOR_ATTR_IF2_JOY1:    equ SCREEN_COLOR_ATTR+7*COLOR_SCREEN_WIDTH+15
+COLOR_ATTR_IF2_JOY2:    equ COLOR_ATTR_IF2_JOY1+9
 
-COLOR_ATTR_KEMPSTON_JOY0:   equ COLOR_ATTR_IF2_JOY0+COLOR_SCREEN_WIDTH
-COLOR_ATTR_KEMPSTON_JOY1:   equ COLOR_ATTR_KEMPSTON_JOY0+9
+COLOR_ATTR_KEMPSTON_JOY1:   equ COLOR_ATTR_IF2_JOY1+COLOR_SCREEN_WIDTH
+COLOR_ATTR_KEMPSTON_JOY2:   equ COLOR_ATTR_KEMPSTON_JOY1+9
 
-COLOR_ATTR_FULLER:  equ COLOR_ATTR_KEMPSTON_JOY0+COLOR_SCREEN_WIDTH
+COLOR_ATTR_FULLER:  equ COLOR_ATTR_KEMPSTON_JOY1+COLOR_SCREEN_WIDTH
 
-COLOR_ATTR_ZXNEXT_JOY0: equ COLOR_ATTR_FULLER+COLOR_SCREEN_WIDTH
-COLOR_ATTR_ZXNEXT_JOY1: equ COLOR_ATTR_ZXNEXT_JOY0+9
+COLOR_ATTR_ZXNEXT_JOY1: equ COLOR_ATTR_FULLER+COLOR_SCREEN_WIDTH
+COLOR_ATTR_ZXNEXT_JOY2: equ COLOR_ATTR_ZXNEXT_JOY1+9
+
+
+; For accessing the ZXNext joystick mode register
+TBBLUE_REG_SELECT:  equ 243Bh
+TBBLUE_REG_ACCESS:  equ 253Bh
 
 
 ;===========================================================================
@@ -130,8 +139,18 @@ LBL_MAIN:
     ;call 0D6Bh
 
     ; Print text.
-    ld hl,LBL_COMPLETE_TEXT
+    ld hl,MAIN_TEXT
     call print
+
+
+    ; Check for ZX Next
+    call check_for_z80n
+    jr nz,main_loop
+
+    ; Print additional text
+    ld hl,ZXNEXT_TEXT
+    call print
+
 
 ; The main loop:
 ; - Check joystick input
@@ -145,23 +164,23 @@ main_loop:
     ;call print
 
     ; Get joystick value. Interface II, joystick 0
-    ld bc,PORT_IF2_JOY_0
-    ld hl,COLOR_ATTR_IF2_JOY0
-    call visualize_joystick_inport
-
-    ; Get joystick value. Interface II, joystick 1
     ld bc,PORT_IF2_JOY_1
     ld hl,COLOR_ATTR_IF2_JOY1
     call visualize_joystick_inport
 
+    ; Get joystick value. Interface II, joystick 1
+    ld bc,PORT_IF2_JOY_2
+    ld hl,COLOR_ATTR_IF2_JOY2
+    call visualize_joystick_inport
+
     ; Get joystick value. Kempston, joystick 0.
-    ld bc,PORT_KEMPSTON_JOY0
-    ld hl,COLOR_ATTR_KEMPSTON_JOY0
+    ld bc,PORT_KEMPSTON_JOY1
+    ld hl,COLOR_ATTR_KEMPSTON_JOY1
     call visualize_joystick_inport
 
     ; Get joystick value. Kempston, joystick 1.
-    ld bc,PORT_KEMPSTON_JOY1
-    ld hl,COLOR_ATTR_KEMPSTON_JOY1
+    ld bc,PORT_KEMPSTON_JOY2
+    ld hl,COLOR_ATTR_KEMPSTON_JOY2
     call visualize_joystick_inport
 
     ; Get joystick value. Fuller.
@@ -171,32 +190,74 @@ main_loop:
 
 
 
-    ; Check for ZX Next, i.e. check if extended opcodes are available.
+    ; Check for ZX Next
+    call check_for_z80n
+    jr nz,main_loop
+
+no_key_pressed:
+    ; Read configuration of ZX Next joystick
+    ld bc,TBBLUE_REG_SELECT
+    ld a,REG_PERIPHERAL_1
+    out (c),a
+    ld bc,TBBLUE_REG_ACCESS
+    in a,(c)
+    
+    ; Check if value changed
+    ld hl,prev_zxn_joy_config
+    cp (hl)
+    jr z,main_loop
+
+    ; Changed, store
+    ld (hl),a
+
+
+    push af
+    push af
+
+    ; Print joystick 1
+    ld hl,JOY1_MODE_TEXT
+    call print
+
+    ; Evaluate joystick 1
+    pop af 
+    and 11001000b ; Mask out all other registers
+    ld l,a
+    sra l
+    rlca
+    rlca
+    or l
+    and 0111b
+    call print_zxn_joy_config
+
+    ; Print joystick 2
+    ld hl,JOY2_MODE_TEXT
+    call print
+
+    ; Evaluate joystick 2
+    pop af 
+    and 00110010b ; Mask out all other registers
+    ld l,a
+    sla l
+    rlca
+    rlca
+    rlca
+    rlca
+    or l
+    and 0111b
+    call print_zxn_joy_config
+
+    jr main_loop
+
+
+; Check for Z80N (ZX Next) CPU, i.e. check if extended opcodes are available.
+; Returns: Z is set if it is a Z80N
+check_for_z80n:
     ld e,2
     ld d,e
     MUL_D_E
     ld a,e
     cp 4
-    jr nz,main_loop
-
-
-    ; ZXNext joystick.
-    ; Uses the same ports as IF2 or Kempston, but allows for more buttons.
-    NEXTREG REG_PERIPHERAL_1 01101010b  ; Use 3 button mode
-
-    ; Get joystick value. Interface II, joystick 0
-    ld bc,PORT_IF2_JOY_0
-    ld hl,COLOR_ATTR_ZXNEXT_JOY0
-    call visualize_joystick_inport
-
-    ; Get joystick value. Interface II, joystick 1
-    ld bc,PORT_IF2_JOY_1
-    ld hl,COLOR_ATTR_ZXNEXT_JOY1
-    call visualize_joystick_inport
-
-    NEXTREG REG_PERIPHERAL_1 11000000b  ; Switch back to normal mode
-
-    jr main_loop
+    ret
 
 
 ; Visualizes the Joystick Input.
@@ -219,6 +280,75 @@ visualize_joystick_l1:
     ret
 
 
+; Prints the ZX Next joystick configuration of one joystick.
+; A has to contain the config. I.e. only the least 3 bist should be set.
+print_zxn_joy_config:
+    cp 0
+    jr nz,no_if2_joy2
+    ; It is IF2 joystick 2
+    ld hl,IF2_TEXT
+    ld de,JOY2_TEXT
+    jr zxn_joy_print
+
+no_if2_joy2:
+    cp 1
+    jr nz,no_kempston_joy1
+    ; It is Kempston joystick 1
+    ld hl,KEMPSTON_TEXT
+    ld de,JOY1_TEXT
+    jr zxn_joy_print
+
+no_kempston_joy1:
+    cp 2
+    jr nz,no_cursor
+    ; It is Cursor joystick
+    ld hl,CURSOR_TEXT
+    ld de,JOYSTICK_TEXT
+    jr zxn_joy_print
+
+no_cursor:
+    cp 3
+    jr nz,no_if2_joy1
+     ; It is IF2 joystick 1
+    ld hl,IF2_TEXT
+    ld de,JOY1_TEXT
+    jr zxn_joy_print
+
+no_if2_joy1:
+    cp 4
+    jr nz,no_kempston_joy2
+    ; It is Kempston joystick 2
+    ld hl,KEMPSTON_TEXT
+    ld de,JOY2_TEXT
+    jr zxn_joy_print
+
+no_kempston_joy2:
+    cp 5
+    jr nz,no_md1
+    ; It is MD (MegaDrive) joystick 1
+    ld hl,MD_TEXT
+    ld de,JOY1_TEXT
+    jr zxn_joy_print
+
+no_md1:
+    cp 6
+    jr nz,no_md2
+    ; It is MD (MegaDrive) joystick 1
+    ld hl,MD_TEXT
+    ld de,JOY2_TEXT
+    jr zxn_joy_print
+
+no_md2:
+    ret  ; Print nothing
+
+zxn_joy_print:
+    push de
+    call print 
+    pop hl
+    call print 
+    ret 
+    
+
 ; Prints a text until an EOS (end of string) is found.
 ; IN: HL = Points to the start of the text. The text may contains positional
 ;       commands like AT.
@@ -231,11 +361,16 @@ print:
     ; Print
     rst 10h
 
- ;ret	
-
     ; Next
     inc hl
     jr print
+
+
+
+;===========================================================================
+; Data.
+;===========================================================================
+prev_zxn_joy_config:    defb 0xFF  ;    Is an invalid value
 
 
 
@@ -245,14 +380,14 @@ print:
 
 ; Texts.
 
-LBL_COMPLETE_TEXT:
+MAIN_TEXT:
     defb AT, 0, 0
-    defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.0.'
+    defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.1.'
     defb AT, 3, 0
     defb 'White=1, Red=0, Black=Not Avail.'
     
     defb AT, 5, 15
-    defb 'Joy0:    Joy1:'
+    defb 'Joy1:    Joy2:'
     defb AT, 6, 15
     defb '76543210 76543210'
 
@@ -265,11 +400,49 @@ LBL_COMPLETE_TEXT:
     defb AT, 9, 0
     defb 'Fuller:        F???RLDU'
 
-    defb AT, 10, 0
-    defb 'ZXNext:        SACBUDLR SACBUDLR'
+    ;defb AT, 10, 0
+    ;defb 'ZXNext:        SACBUDLR SACBUDLR'
 
     defb EOS
     
+ZXNEXT_TEXT:
+    defb AT, 12, 0
+    defb 'ZXNEXT Joystick Modes:'
+    defb AT, 16, 0
+    defb 'Press key to change mode:'
+    defb AT, 17, 0
+    defb 'A=Change Joystick 1 mode'
+    defb AT, 18, 0
+    defb 'S=Change Joystick 2 mode'
+    defs EOS
+
+JOY1_MODE_TEXT:
+    defb AT, 13, 0
+    defb 'Joy1:                           '
+    defb AT, 13, 6
+    defb EOS
+
+JOY2_MODE_TEXT:
+    defb AT, 14, 0
+    defb 'Joy2:                           '
+    defb AT, 14, 6
+    defb EOS
+    
+IF2_TEXT:
+    defb 'Interface II ', EOS
+
+KEMPSTON_TEXT:
+    defb 'Kempston ', EOS
+
+CURSOR_TEXT:
+    defb 'Cursor ', EOS
+
+MD_TEXT:
+    defb 'MD mapped to Kempston ', EOS
+
+JOY1_TEXT:  defb 'JOY1', EOS
+JOY2_TEXT:  defb 'JOY2', EOS
+JOYSTICK_TEXT:  defb 'Joystick', EOS
 
 
 ;===========================================================================
@@ -297,34 +470,34 @@ include "unit_tests.inc"
 if 01
 
 UT_visualize_joystick_1:
-    ld hl,COLOR_ATTR_ZXNEXT_JOY0
+    ld hl,COLOR_ATTR_ZXNEXT_JOY1
     ld a,10101010b
     call visualize_joystick_a
     
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+1 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+2 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+3 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+4 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+5 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+6 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+7 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+1 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+2 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+3 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+4 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+5 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+6 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+7 COLOR_BIT_SET
 
 	ret
 
 UT_visualize_joystick_2:
-    ld hl,COLOR_ATTR_ZXNEXT_JOY0
+    ld hl,COLOR_ATTR_ZXNEXT_JOY1
     ld a,01010101b
     call visualize_joystick_a
     
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+1 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+2 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+3 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+4 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+5 COLOR_BIT_NOT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+6 COLOR_BIT_SET
-    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY0+7 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+1 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+2 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+3 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+4 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+5 COLOR_BIT_NOT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+6 COLOR_BIT_SET
+    TEST_MEMORY_BYTE COLOR_ATTR_ZXNEXT_JOY1+7 COLOR_BIT_NOT_SET
 
 	ret
 
