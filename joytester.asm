@@ -91,6 +91,15 @@ MEMGUARD:	macro
     endm
 
 
+; Sets a Next Feature Control Register with A.
+; Parameters:
+;	register = The Next Feature Control Register to set.
+NEXTRA:	macro	register
+	defb 0xED, 0x92
+	defb register
+	endm
+    
+    
 ; Directly sets a Next Feature Control Register with the given value.
 ; Parameters:
 ;	register = The Next Feature Control Register to set.
@@ -100,6 +109,7 @@ NEXTREG:	macro	register value
 	defb register
 	defb value
 	endm
+
 
 
 ; Multiplies D by E and stores the result in DE.
@@ -194,6 +204,43 @@ main_loop:
     call check_for_z80n
     jr nz,main_loop
 
+    ; Check for keypress to change the joystick mode
+    ld bc,KEYB_ASDFG
+    in a,(c)
+    ; Check if value changed
+    ld hl,prev_keyb
+    cp (hl)
+    jr z,no_key_pressed
+
+    ; Changed, store
+    ld (hl),a
+    ld e,a
+
+    ; Key was pressed
+
+    ; Read configuration of ZX Next joystick
+    ld bc,TBBLUE_REG_SELECT
+    ld a,REG_PERIPHERAL_1
+    out (c),a
+    ld bc,TBBLUE_REG_ACCESS
+    in a,(c)
+    
+    ; Evaluate key
+    bit 0,e ; "A"
+    jr nz,key1_not_pressed
+
+    ; "A" was pressed
+    add 01000000b
+    jr nc,j1_no_overflw
+    ; Handle overflow
+    xor 00001000b
+j1_no_overflw:
+    ; Set new value
+    NEXTRA REG_PERIPHERAL_1
+
+key1_not_pressed:
+
+
 no_key_pressed:
     ; Read configuration of ZX Next joystick
     ld bc,TBBLUE_REG_SELECT
@@ -246,7 +293,7 @@ no_key_pressed:
     and 0111b
     call print_zxn_joy_config
 
-    jr main_loop
+    jp main_loop
 
 
 ; Check for Z80N (ZX Next) CPU, i.e. check if extended opcodes are available.
@@ -371,7 +418,7 @@ print:
 ; Data.
 ;===========================================================================
 prev_zxn_joy_config:    defb 0xFF  ;    Is an invalid value
-
+prev_keyb:    defb 0xFF
 
 
 ;===========================================================================
@@ -414,7 +461,7 @@ ZXNEXT_TEXT:
     defb 'A=Change Joystick 1 mode'
     defb AT, 18, 0
     defb 'S=Change Joystick 2 mode'
-    defs EOS
+    defb EOS
 
 JOY1_MODE_TEXT:
     defb AT, 13, 0
