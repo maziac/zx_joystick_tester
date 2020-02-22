@@ -111,6 +111,22 @@ NEXTREG:	macro	register value
 	endm
 
 
+; Reads a Next Feature Control Register .
+; Parameters:
+;	register = The Next Feature Control Register to read.
+; Returns:
+;	A = The value for the register.
+READNREG:   macro   register
+    push bc
+    ld bc,TBBLUE_REG_SELECT
+    ld a,register
+    out (c),a
+    ld bc,TBBLUE_REG_ACCESS
+    in a,(c)
+    pop bc 
+    ret
+    endm
+    
 
 ; Multiplies D by E and stores the result in DE.
 ; Does not alter any flags.
@@ -219,11 +235,7 @@ main_loop:
     ; Key was pressed
 
     ; Read configuration of ZX Next joystick
-    ld bc,TBBLUE_REG_SELECT
-    ld a,REG_PERIPHERAL_1
-    out (c),a
-    ld bc,TBBLUE_REG_ACCESS
-    in a,(c)
+    READNREG REG_PERIPHERAL_1
     
     ; Evaluate key
     bit 0,e ; "A"
