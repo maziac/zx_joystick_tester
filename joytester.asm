@@ -35,8 +35,8 @@ COLOR_BIT_NOT_SET:  equ (WHITE<<3)+BRIGHT
 COLOR_BIT_SET:      equ (RED<<3)+BRIGHT
 
 ; Interface II joystick ports.
-PORT_IF2_JOY_1: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1
-PORT_IF2_JOY_2: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0
+PORT_IF2_JOY_1: equ 0xEFFE ; Keys: 6, 7, 8, 9, 0, Bits: xxxLRDUF
+PORT_IF2_JOY_2: equ 0xF7FE ; Keys: 5, 4, 3, 2, 1, Bits: xxxFUDRL
 
 ; Kempston joystick ports.
 PORT_KEMPSTON_JOY1: equ 0x1f 
@@ -129,7 +129,6 @@ READNREG:   macro   register
     ld bc,TBBLUE_REG_ACCESS
     in a,(c)
     pop bc 
-    ret
     endm
     
 
@@ -204,16 +203,12 @@ main_loop:
     ; Make the loop slower.
     halt
     
-    ; Visualize.
-    ;ld hl,AT_JOY0
-    ;call print
-
-    ; Get joystick value. Interface II, joystick 0
+    ; Get joystick value. Interface II, joystick 1
     ld bc,PORT_IF2_JOY_1
     ld hl,COLOR_ATTR_IF2_JOY1
     call visualize_joystick_inport
 
-    ; Get joystick value. Interface II, joystick 1
+    ; Get joystick value. Interface II, joystick 2
     ld bc,PORT_IF2_JOY_2
     ld hl,COLOR_ATTR_IF2_JOY2
     call visualize_joystick_inport
@@ -315,7 +310,7 @@ no_key_pressed:
     ; Check if value changed
     ld hl,prev_zxn_joy_config
     cp (hl)
-    jp z,main_loop
+    jp z,print_expansion_port
 
     ; Changed, store
     ld (hl),a
@@ -356,6 +351,7 @@ no_key_pressed:
     and 0111b
     call print_zxn_joy_config
 
+print_expansion_port:
     ; Print expansion board configuration
     ld hl,EXPANSION_TEXT
     call print
@@ -544,6 +540,8 @@ ZXNEXT_TEXT:
     defb 'S=Change Joystick 2 mode'
     defb AT, 20, 0
     defb 'G=Toggle expansion port mode'
+    defb AT, 21, 0
+    defb '  (afterwards do a soft-reset)'
     defb EOS
 
 JOY1_MODE_TEXT:
@@ -580,8 +578,8 @@ UNDEFINED_TEXT: defb 'Undefined', EOS
 EXPANSION_TEXT: defb AT, 15, 0
     defb 'Expansion port: ', EOS
 
-ENABLED_TEXT: defb 'Enabled', EOS
-DISABLED_TEXT: defb 'Disabled', EOS
+ENABLED_TEXT:   defb 'Enabled ', EOS
+DISABLED_TEXT:  defb 'Disabled', EOS
 
 
 ;===========================================================================
