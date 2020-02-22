@@ -80,6 +80,11 @@ COLOR_ATTR_ZXNEXT_JOY2: equ COLOR_ATTR_ZXNEXT_JOY1+9
 TBBLUE_REG_SELECT:  equ 243Bh
 TBBLUE_REG_ACCESS:  equ 253Bh
 
+; Expansion Bus Enable Register
+REG_EXPANSION_PORT_ENABLE:  equ 80h
+REG_INTERNAL_PORT_DECODING_B07: equ 82h
+REG_EXPANSION_BUS_DECODING_B07: equ 86h
+
 
 ;===========================================================================
 ; Macros.
@@ -177,6 +182,20 @@ LBL_MAIN:
     ld hl,ZXNEXT_TEXT
     call print
 
+    ; Disable expansion port
+    READNREG REG_EXPANSION_PORT_ENABLE
+    or 80h  ; Enable expansion port
+    NEXTRA REG_EXPANSION_PORT_ENABLE 
+
+    ; Enable internal and expansion bus decoding
+    READNREG REG_EXPANSION_BUS_DECODING_B07
+    or 11000000b
+    NEXTRA REG_EXPANSION_BUS_DECODING_B07 
+    READNREG REG_INTERNAL_PORT_DECODING_B07
+    or 11000000b
+    NEXTRA REG_INTERNAL_PORT_DECODING_B07 
+
+
 
 ; The main loop:
 ; - Check joystick input
@@ -253,7 +272,7 @@ j1_no_overflw:
 key1_not_pressed:
     ; Evaluate key
     bit 1,e ; "S"
-    jr nz,no_key_pressed
+    jr nz,key_exp_not_pressed
 
     ; "S" was pressed
     ld l,a
@@ -273,6 +292,17 @@ restore_0:
 j2_no_overflw:
     ; Set new value
     NEXTRA REG_PERIPHERAL_1
+
+
+
+key_exp_not_pressed:
+    ; Evaluate key
+    bit 4,e ; "G"
+    jr nz,no_key_pressed
+
+    ; Key to toggle expansion port was pressed
+    call toggle_expansion_port
+
 
 no_key_pressed:
     ; Read configuration of ZX Next joystick
@@ -325,6 +355,18 @@ no_key_pressed:
     or l
     and 0111b
     call print_zxn_joy_config
+
+    ; Print expansion board configuration
+    ld hl,EXPANSION_TEXT
+    call print
+    ; Show the current state
+    READNREG REG_EXPANSION_PORT_ENABLE
+    bit 7,a  ; Check for expansion port
+    ld hl,DISABLED_TEXT
+    jr z,exp_disabled
+    ld hl,ENABLED_TEXT
+exp_disabled:
+    call print
 
     jp main_loop
 
@@ -431,6 +473,17 @@ zxn_joy_print:
     ret 
     
 
+
+;  Toggle enabling of the expansion port.
+toggle_expansion_port:
+    ; Get current value
+    READNREG REG_EXPANSION_PORT_ENABLE
+    xor 80h  ; Toggle
+    ; Write
+    NEXTRA REG_EXPANSION_PORT_ENABLE
+    ret
+
+
 ; Prints a text until an EOS (end of string) is found.
 ; IN: HL = Points to the start of the text. The text may contains positional
 ;       commands like AT.
@@ -453,7 +506,8 @@ print:
 ; Data.
 ;===========================================================================
 prev_zxn_joy_config:    defb 0xFF  ;    Is an invalid value
-prev_keyb:    defb 0xFF
+prev_keyb:    defb 0x80
+
 
 
 ;===========================================================================
@@ -467,35 +521,29 @@ MAIN_TEXT:
     defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.1.'
     defb AT, 3, 0
     defb 'White=1, Red=0, Black=Not Avail.'
-    
     defb AT, 5, 15
     defb 'Joy1:    Joy2:'
     defb AT, 6, 15
     defb '76543210 76543210'
-
     defb AT, 7, 0
     defb 'Interface II:  ???LRDUF ???FUDRL'
-
     defb AT, 8, 0
     defb 'Kempston:      ???FUDLR ???FUDLR'
-
     defb AT, 9, 0
     defb 'Fuller:        F???RLDU'
-
-    ;defb AT, 10, 0
-    ;defb 'ZXNext:        SACBUDLR SACBUDLR'
-
     defb EOS
     
 ZXNEXT_TEXT:
     defb AT, 12, 0
     defb 'ZXNEXT Joystick Modes:'
-    defb AT, 16, 0
-    defb 'Press a key to change mode:'
     defb AT, 17, 0
-    defb 'A=Change Joystick 1 mode'
+    defb 'Press a key to change mode:'
     defb AT, 18, 0
+    defb 'A=Change Joystick 1 mode'
+    defb AT, 19, 0
     defb 'S=Change Joystick 2 mode'
+    defb AT, 20, 0
+    defb 'G=Toggle expansion port mode'
     defb EOS
 
 JOY1_MODE_TEXT:
@@ -527,6 +575,13 @@ JOY2_TEXT:  defb 'JOY2', EOS
 JOYSTICK_TEXT:  defb 'Joystick', EOS
 
 UNDEFINED_TEXT: defb 'Undefined', EOS
+
+
+EXPANSION_TEXT: defb AT, 15, 0
+    defb 'Expansion port: ', EOS
+
+ENABLED_TEXT: defb 'Enabled', EOS
+DISABLED_TEXT: defb 'Disabled', EOS
 
 
 ;===========================================================================
