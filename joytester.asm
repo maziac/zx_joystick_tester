@@ -84,7 +84,7 @@ TBBLUE_REG_ACCESS:  equ 253Bh
 REG_EXPANSION_PORT_ENABLE:  equ 80h
 REG_INTERNAL_PORT_DECODING_B07: equ 82h
 REG_EXPANSION_BUS_DECODING_B07: equ 86h
-
+REG_EXPANSION_BUS_IO_PROPAGATE:   equ 8Ah
 
 ;===========================================================================
 ; Macros.
@@ -193,6 +193,9 @@ LBL_MAIN:
     READNREG REG_INTERNAL_PORT_DECODING_B07
     or 11000000b
     NEXTRA REG_INTERNAL_PORT_DECODING_B07 
+    READNREG REG_EXPANSION_BUS_IO_PROPAGATE
+    or 00000001b
+    NEXTRA REG_EXPANSION_BUS_IO_PROPAGATE 
 
 
 
@@ -319,6 +322,16 @@ no_key_pressed:
     push af
     push af
 
+    ; Print defaults for the kempston joysticks
+    ld hl,KEMPSTON_JOY1_POS
+    call print 
+    ld hl,KEMPSTON_NORMAL_JOY_TEXT
+    call print
+    ld hl,KEMPSTON_JOY2_POS
+    call print 
+    ld hl,KEMPSTON_NORMAL_JOY_TEXT
+    call print
+
     ; Print joystick 1
     ld hl,JOY1_MODE_TEXT
     call print
@@ -399,7 +412,7 @@ visualize_joystick_l1:
 
 
 ; Prints the ZX Next joystick configuration of one joystick.
-; A has to contain the config. I.e. only the least 3 bist should be set.
+; A has to contain the config. I.e. only the least 3 bits should be set.
 print_zxn_joy_config:
     cp 0
     jr nz,no_if2_joy2
@@ -444,22 +457,36 @@ no_kempston_joy2:
     cp 5
     jr nz,no_md1
     ; It is MD (MegaDrive) joystick 1
+    ld bc,KEMPSTON_JOY1_POS
+    ld ix,KEMPSTON_MD_JOY_TEXT
     ld hl,MD_TEXT
     ld de,JOY1_TEXT
-    jr zxn_joy_print
+    jr zxn_joy_print_kempston_md
 
 no_md1:
     cp 6
     jr nz,no_md2
-    ; It is MD (MegaDrive) joystick 1
+    ; It is MD (MegaDrive) joystick 2
+    ld bc,KEMPSTON_JOY2_POS
+    ld ix,KEMPSTON_MD_JOY_TEXT
     ld hl,MD_TEXT
     ld de,JOY2_TEXT
-    jr zxn_joy_print
+    jr zxn_joy_print_kempston_md
 
 no_md2:
     ld hl,UNDEFINED_TEXT
     call print
     ret  ; Print nothing
+
+zxn_joy_print_kempston_md:
+    push ix 
+    push bc 
+    call zxn_joy_print
+    pop hl  ; bc
+    call print 
+    pop hl  ; ix
+    call print 
+    ret 
 
 zxn_joy_print:
     push de
@@ -514,7 +541,7 @@ prev_keyb:    defb 0x80
 
 MAIN_TEXT:
     defb AT, 0, 0
-    defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.1.'
+    defb 'Joystick Tester for ZX Spectrum and ZX Next. Version 1.2.'
     defb AT, 3, 0
     defb 'White=1, Red=0, Black=Not Avail.'
     defb AT, 5, 15
@@ -522,13 +549,25 @@ MAIN_TEXT:
     defb AT, 6, 15
     defb '76543210 76543210'
     defb AT, 7, 0
-    defb 'Interface II:  ???LRDUF ???FUDRL'
+    defb 'Interface II:  ???LRDUF ???FUDRL'    
     defb AT, 8, 0
-    defb 'Kempston:      ???FUDLR ???FUDLR'
+    defb 'Kempston:'
     defb AT, 9, 0
     defb 'Fuller:        F???RLDU'
     defb EOS
-    
+
+KEMPSTON_JOY1_POS:
+    defb AT, 8, 15, EOS 
+KEMPSTON_JOY2_POS:
+    defb AT, 8, 24, EOS 
+KEMPSTON_NORMAL_JOY_TEXT:
+    defb '???FUDLR'
+    defb EOS
+KEMPSTON_MD_JOY_TEXT:
+    defb 'SACBUDLR'
+    defb EOS
+
+
 ZXNEXT_TEXT:
     defb AT, 12, 0
     defb 'ZXNEXT Joystick Modes:'
@@ -540,8 +579,6 @@ ZXNEXT_TEXT:
     defb 'S=Change Joystick 2 mode'
     defb AT, 20, 0
     defb 'G=Toggle expansion port mode'
-    defb AT, 21, 0
-    defb '  (afterwards do a soft-reset)'
     defb EOS
 
 JOY1_MODE_TEXT:

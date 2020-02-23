@@ -9,6 +9,7 @@
             "request": "launch",
             "name": "joytester",
             "remoteType": "zrcp",
+            //"remoteType": "zxnext",
             "zhostname": "localhost",
             "zport": 10000,
             "topOfStack": "stack_top",
