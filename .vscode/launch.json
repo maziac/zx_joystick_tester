@@ -9,9 +9,6 @@
             "request": "launch",
             "name": "joytester",
             "remoteType": "zrcp",
-            //"remoteType": "zxnext",
-            "zhostname": "localhost",
-            "zport": 10000,
             "topOfStack": "stack_top",
             "resetOnLaunch": true,
             "skipInterrupt": true,
@@ -22,6 +19,7 @@
                 //"-sprites",
                 //"-patterns"
             ],
+            "rootFolder": "${workspaceFolder}",
             "disassemblerArgs": {
                 "esxdosRst": true
             },
@@ -43,17 +41,14 @@
                 }
             ],
             */
-            "socketTimeout": 50,    // 50 secs for debugging
         },
 
         {
             "type": "dezog",
             "request": "launch",
             "unitTests": true,
-            "remoteType": "zrcp",
+            "remoteType": "zsim",
             "name": "Unit Tests",
-            "zhostname": "localhost",
-            "zport": 10000,
             "topOfStack": "stack_top",
             "resetOnLaunch": true,
             "skipInterrupt": true,
@@ -64,6 +59,7 @@
                 //"-sprites",
                 //"-patterns"
             ],
+            "rootFolder": "${workspaceFolder}",
             "disassemblerArgs": {
                 "esxdosRst": true
             },
@@ -80,7 +76,6 @@
                     "start": "0x7000"
                 }
             ],
-            "socketTimeout": 50,    // 50 secs for debugging
         }
     ]
 }
