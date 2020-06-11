@@ -14,11 +14,15 @@ UNITTEST_TEST_WRAPPER:  di
         ld sp,UNITTEST_STACK
 UNITTEST_CALL_ADDR: call 0x0000 ; Will be changed by the z80 unit tests.
         nop
-        
-UNITTEST_TEST_READY_SUCCESS:    jr UNITTEST_TEST_READY_SUCCESS	; A breakpoint will be set here.
+
+UNITTEST_TEST_READY_RETURN_FAILURE: jr UNITTEST_TEST_READY_RETURN_FAILURE	; A breakpoint will be set here. The unit test will normally not return here but at UNITTEST_TEST_READY_SUCCESS
 
 UNITTEST_TEST_READY_FAILURE:    nop 
 UNITTEST_TEST_READY_FAILURE_BREAKPOINT: ret 	; A breakpoint will be set here. The next step will return to the failed test case
+
+UNITTEST_TEST_READY_SUCCESS:    jr UNITTEST_TEST_READY_SUCCESS	; A breakpoint will be set here.
+
+
 UNITTEST_MIN_STACK_GUARD:   defw 0	; A write watchpoint will be set here to guard the stack
         defs 2*50	; Stack depth of 50 should be enough
 UNITTEST_STACK: defw 0
@@ -35,6 +39,14 @@ UNITTEST_START: di       ; Disable interrupts
         ; Note: the stack pointer does not need to be set up.
 
     ENDM
+
+
+
+UT_END:    MACRO 
+        
+        jp UNITTEST_TEST_READY_SUCCESS
+    ENDM
+
 
 
     ; Tests a memory address for a specific byte value.
