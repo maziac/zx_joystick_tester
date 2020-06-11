@@ -43,7 +43,7 @@ UNITTEST_START: di       ; Disable interrupts
 
 
     ; Macro that must be used at the end of the test case (instead of a ret).
-UT_END:    MACRO 
+TC_END:    MACRO 
         jp UNITTEST_TEST_READY_SUCCESS
     ENDM
 
