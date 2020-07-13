@@ -13,6 +13,7 @@ SNA_SYMS = $(PROJ).symbols
 SNA_BLOCK = $(PROJ).blocks
 SNA_OBJ = $(PROJ).re.obj
 SNA_ASM = $(PROJ).re.asm
+TMP_FILE = $(PROJ).tmp
 TAP_PRG_NAME = joytester
 TAP_FILE = $(PROJ).tap
 MAIN_ASM = joytester.asm
@@ -26,7 +27,7 @@ LIST_OUT = $(PROJ).list
 
 #default:	sna tap
 #default:	sna
-default:	tap
+default:	tap sna
 
 clean:
 	-rm -f $(EXT_OBJ) $(EXT_SNA) $(SNA_HDR)
@@ -39,7 +40,11 @@ $(MAIN_OBJ):	$(ASM_FILES) Makefile
 
 
 sna:	$(MAIN_OBJ) $(SNA_HDR)
-	cat $(SNA_HDR) $(MAIN_OBJ) > $(SNA_FILE)
+	# 0x7000-0x4000
+	cat /dev/zero | head -c 12288 > $(TMP_FILE)	
+	cat	$(SNA_HDR) $(TMP_FILE) $(MAIN_OBJ) /dev/zero | head -c 49179 > $(SNA_FILE)
+	rm $(TMP_FILE)
+
 
 tap:	$(MAIN_OBJ)
 	# 24999 (0x61A7) is the top of the ZX Basic program.

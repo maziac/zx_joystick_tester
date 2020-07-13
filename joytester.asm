@@ -147,6 +147,12 @@ MUL_D_E:	macro
     org 0x7000
 
 LBL_MAIN:
+    jr MAIN_START
+    
+    ; Use as stack for sna file (at 0x7002)
+    defw LBL_MAIN
+
+MAIN_START:
     di
 
     ; Setup stack
@@ -679,4 +685,4 @@ UNITTEST_INITIALIZE
     ret
 
 endif 
-    
+

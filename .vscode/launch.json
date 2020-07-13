@@ -4,6 +4,7 @@
     // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+
         {
             "type": "dezog",
             "request": "launch",
@@ -46,6 +47,62 @@
         {
             "type": "dezog",
             "request": "launch",
+            "remoteType": "zxnext",
+            "name": "ZX Next",
+            "topOfStack": "stack_top",
+            "resetOnLaunch": true,
+            "skipInterrupt": true,
+            "commandsAfterLaunch": [
+                //"-wpmem disable",
+                //"-assert disable",
+                //"-sprites",
+                //"-patterns"
+            ],
+            "rootFolder": "${workspaceFolder}",
+            "disassemblerArgs": {
+                "esxdosRst": true
+            },
+            "listFiles": [
+                {
+                    "asm": "z80asm",
+                    "path": "joytester.list",
+                    "useFiles": true
+                }
+            ],
+            "load": "joytester.sna"
+        },
+
+        {
+            "type": "dezog",
+            "request": "launch",
+            "remoteType": "cspect",
+            "name": "CSpect",
+            "topOfStack": "stack_top",
+            "resetOnLaunch": true,
+            "skipInterrupt": true,
+            "commandsAfterLaunch": [
+                //"-wpmem disable",
+                //"-assert disable",
+                //"-sprites",
+                //"-patterns"
+            ],
+            "rootFolder": "${workspaceFolder}",
+            "disassemblerArgs": {
+                "esxdosRst": true
+            },
+            "listFiles": [
+                {
+                    "asm": "z80asm",
+                    "path": "joytester.list",
+                    "useFiles": true
+                }
+            ],
+            "load": "joytester.sna"
+        },
+
+        {
+            "type": "dezog",
+            "request": "launch",
             "unitTests": true,
             "remoteType": "zsim",
             "name": "Unit Tests",
@@ -71,7 +128,7 @@
                 }
             ],
             "loadObjs": [
-                 {
+                {
                     "path": "joytester.obj",
                     "start": "0x7000"
                 }
