@@ -4,15 +4,12 @@
     // Weitere Informationen finden Sie unter https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
             "type": "dezog",
             "request": "launch",
-            "name": "joytester",
+            "name": "ZEsarUX",
             "remoteType": "zrcp",
             "topOfStack": "stack_top",
-            "resetOnLaunch": true,
-            "skipInterrupt": true,
             "startAutomatically": true,
             "commandsAfterLaunch": [
                 //"-wpmem disable",
@@ -24,34 +21,28 @@
             "disassemblerArgs": {
                 "esxdosRst": true
             },
-            "listFiles": [
+            "z80asm": [
                 {
-                    "asm": "z80asm",
-                    "path": "joytester.list",
-                    "useFiles": true
-                }
-
-            ],        
-            "load": "joytester.tap",
-            /*
-            "execAddress": "LBL_MAIN",
-            "loadObjs": [
-                {
-                    "path": "joytester.obj",
-                    "start": "0x7000"
+                    "path": "joytester.list"
                 }
             ],
-            */
+            "load": "joytester.tap",
+            /*
+                    "execAddress": "LBL_MAIN",
+                    "loadObjs": [
+                        {
+                            "path": "joytester.obj",
+                            "start": "0x7000"
+                        }
+                    ],
+                    */
         },
-
         {
             "type": "dezog",
             "request": "launch",
-            "remoteType": "zxnext",
             "name": "ZX Next",
+            "remoteType": "zxnext",
             "topOfStack": "stack_top",
-            "resetOnLaunch": true,
-            "skipInterrupt": true,
             "commandsAfterLaunch": [
                 //"-wpmem disable",
                 //"-assert disable",
@@ -62,11 +53,9 @@
             "disassemblerArgs": {
                 "esxdosRst": true
             },
-            "listFiles": [
+            "z80asm": [
                 {
-                    "asm": "z80asm",
-                    "path": "joytester.list",
-                    "useFiles": true
+                    "path": "joytester.list"
                 }
             ],
             "load": "joytester.sna"
@@ -75,11 +64,9 @@
         {
             "type": "dezog",
             "request": "launch",
-            "remoteType": "cspect",
             "name": "CSpect",
+            "remoteType": "cspect",
             "topOfStack": "stack_top",
-            "resetOnLaunch": true,
-            "skipInterrupt": true,
             "commandsAfterLaunch": [
                 //"-wpmem disable",
                 //"-assert disable",
@@ -90,11 +77,9 @@
             "disassemblerArgs": {
                 "esxdosRst": true
             },
-            "listFiles": [
+            "z80asm": [
                 {
-                    "asm": "z80asm",
-                    "path": "joytester.list",
-                    "useFiles": true
+                    "path": "joytester.list"
                 }
             ],
             "load": "joytester.sna"
@@ -107,8 +92,6 @@
             "remoteType": "zsim",
             "name": "Unit Tests",
             "topOfStack": "stack_top",
-            "resetOnLaunch": true,
-            "skipInterrupt": true,
             "execAddress": "LBL_MAIN",
             "commandsAfterLaunch": [
                 //"-wpmem disable",
@@ -120,11 +103,9 @@
             "disassemblerArgs": {
                 "esxdosRst": true
             },
-            "listFiles": [
+            "z80asm": [
                 {
-                    "asm": "z80asm",
-                    "path": "joytester.list",
-                    "useFiles": true
+                    "path": "joytester.list"
                 }
             ],
             "loadObjs": [

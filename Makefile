@@ -3,9 +3,9 @@
 
 
 PROJ = joytester
-ASM = "/Volumes/SDDPCIE2TB/Projects/zxspectrum/z80asm/z80asm"	# Path to the Z80 Assembler, http://savannah.nongnu.org/projects/z80asm/
+ASM = "/Volumes/SDDPCIE2TB/Projects/Z80/z80asm/z80asm"	# Path to the Z80 Assembler, http://savannah.nongnu.org/projects/z80asm/
 #CC = ".../bin/sdcc"	# Path to compiler, http://sdcc.sourceforge.net
-CODE2TAP="/Volumes/SDDPCIE2TB/Projects/zxspectrum/zx-tools/zx-code2tap/bin/zxcode2tap"	# Path to the tap-converter, https://github.com/maziac/zx-code2tap
+CODE2TAP="/Volumes/SDDPCIE2TB/Projects/Z80/zx-tools/zx-code2tap/bin/zxcode2tap"	# Path to the tap-converter, https://github.com/maziac/zx-code2tap
 #SED = gsed
 SNA_FILE = $(PROJ).sna
 SNA_HDR = $(PROJ).snahdr
@@ -41,7 +41,7 @@ $(MAIN_OBJ):	$(ASM_FILES) Makefile
 
 sna:	$(MAIN_OBJ) $(SNA_HDR)
 	# 0x7000-0x4000
-	cat /dev/zero | head -c 12288 > $(TMP_FILE)	
+	cat /dev/zero | head -c 12288 > $(TMP_FILE)
 	cat	$(SNA_HDR) $(TMP_FILE) $(MAIN_OBJ) /dev/zero | head -c 49179 > $(SNA_FILE)
 	rm $(TMP_FILE)
 
